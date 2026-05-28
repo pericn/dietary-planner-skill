@@ -36,10 +36,8 @@ dietary-planner/
 │   └── inventory.txt       # 库存 + 人员档案 + 采购清单
 ├── tracking/
 │   └── daily-YYYY-MM-DD.txt  # 每日追踪日志
-├── learnings/
-│   └── behavior-frequency.md  # 行为频率记录
-└── templates/
-    └── meal-plan.html        # 膳食方案图片模板
+└── learnings/
+    └── behavior-frequency.md  # 行为频率记录
 ```
 
 **策略二：对话快照（备选）**
@@ -53,10 +51,9 @@ dietary-planner/
 
 ---
 
-## 🖼️ 图片输出系统（标准化膳食方案卡片）
+## 🖼️ 图片输出（调用 orca-insta）
 
-> 本技能内置可视化输出功能，可将完整膳食方案生成为一张精美的长图（杂志长图风格）。
-> 视觉风格参考 orca-insta 体系：**冷文艺、白底、深灰文字、衬线标题**。
+本技能通过调用 **orca-insta** skill 生成可视化膳食方案长图。
 
 ### 何时生成图片
 
@@ -67,9 +64,30 @@ dietary-planner/
 以下场景可仅输出文字版：
 - 库存查询、采购清单生成
 - 追踪记录读取
-- 简单的「今晚吃什么」快速回答
 
-### 输出结构（图片内容标准化）
+### 调用流程
+
+1. **生成 Markdown 方案**：按下方「输出格式」章节生成结构化 Markdown
+2. **注入 orca-insta**：将 Markdown 内容注入 `templates/magazine-long.html`（杂志长图模式）
+3. **截图输出**：使用 `assets/capture.js` 生成 PNG 图片
+4. **发送图片**：通过消息渠道将图片发送给用户
+
+### 依赖安装
+
+若部署环境没有安装 orca-insta，执行以下命令：
+```bash
+# 克隆 orca-insta 到本地
+git clone https://github.com/pericn/orca-insta.git ~/.openclaw/skills/orca-insta
+
+# 安装 Playwright 依赖
+cd ~/.openclaw/skills/orca-insta
+npm install
+npx playwright install chromium
+```
+
+### 输出格式（Markdown → 图片）
+
+图片内容按以下顺序排布，包含五个核心板块：
 
 生成的膳食方案长图必须包含以下五个板块，按顺序排列：
 
@@ -212,82 +230,32 @@ dietary-planner/
 - 每个菜谱卡可配一张食材/成品图
 - 图片区域宽度撑满页面（边距=0）
 
----
-
-### 图片生成流程
-
-**Step 1**：收集所有信息（人员档案、菜谱、营养数据）
-**Step 2**：读取模板 `templates/meal-plan.html`
-**Step 3**：将数据注入模板（替换 `{{placeholder}}`）
-**Step 4**：使用 capture.js 截图
+### 调用命令示例
 
 ```bash
-# 生成图片示例命令
-node <skill_dir>/assets/capture.js \
-  /tmp/dietary-plan.html \
+# 假设 orca-insta 安装在 ~/.openclaw/skills/orca-insta
+node ~/.openclaw/skills/orca-insta/assets/capture.js \
+  /tmp/meal-plan.html \
   ~/Downloads/dietary-plan-2026-05-28.png \
   1080 2000 fullpage
 ```
 
-**Step 5**：通过消息渠道发送图片给用户（优先使用图片回复）
+### Markdown 内容注入
 
----
-
-### HTML 模板结构（templates/meal-plan.html）
+将下方「输出格式」章节生成的 Markdown 内容，按以下模板结构注入：
 
 ```html
-<!-- 整体框架 -->
-<div class="page">
-  <!-- 板块一：标题区 -->
-  <header class="header">
-    <h1 class="title">{{日期}} 膳食计划</h1>
-    <p class="subtitle">{{目标人员}} · {{健康主题}}</p>
-  </header>
-
-  <!-- 板块二：人员档案卡 -->
-  <section class="profile-card">
-    <h2>👤 人员档案</h2>
-    <div class="tags">{{禁忌标签}}{{医嘱标签}}{{偏好标签}}{{目标标签}}</div>
-  </section>
-
-  <!-- 板块三：膳食目标 -->
-  <section class="nutrition-goals">
-    <h2>📊 膳食目标</h2>
-    <table class="nutrition-table">
-      <!-- 动态插入营养指标行 -->
-    </table>
-  </section>
-
-  <!-- 板块四：菜谱详情 -->
-  <section class="recipes">
-    <h2>🍽️ 今日菜谱</h2>
-    <!-- 动态插入多个 recipe-card -->
-  </section>
-
-  <!-- 板块五：健康提示 -->
-  <section class="tips">
-    <h2>💡 健康提示</h2>
-    <!-- 动态插入 tips list -->
-  </section>
-
-  <!-- 板块六：采购清单 -->
-  <section class="shopping">
-    <h2>🛒 采购清单</h2>
-    <!-- 动态插入采购项 -->
-  </section>
-
-  <!-- 页脚 -->
-  <footer class="footer">
-    <p>由 AI 膳食策划专家生成 · 仅供参考</p>
-  </footer>
-</div>
+<!-- 框架：使用 orca-insta 的 magazine-long 模板 -->
+<!-- 标题区：{{日期}} 膳食计划 · {{目标人员}} · {{健康主题标签}} -->
+<!-- 人员档案卡：禁忌/医嘱/偏好/目标 -->
+<!-- 膳食目标表：热量/蛋白质/脂肪/碳水/钠/钙/纤维/钾 -->
+<!-- 菜谱详情：主料/步骤/营养分析/长者提示 -->
+<!-- 健康提示：3-5条专项建议 -->
+<!-- 采购清单：库存不足项 -->
+<!-- 页脚：免责声明 -->
 ```
 
-**模板文件位置**：`templates/meal-plan.html`
-
-**外部依赖**：
-- 字体：Noto Serif SC、Noto Sans SC（通过 Google Fonts CDN 加载）
-- 截图引擎：`assets/capture.js`（已复制自 orca-insta skill，MIT License）
+详细 HTML 结构参考 orca-insta 的 `templates/magazine-long.html`。
 
 ---
 
@@ -401,10 +369,8 @@ dietary-planner/
 │   └── inventory.txt       # 库存 + 人员档案(硬约束) + 采购清单
 ├── tracking/
 │   └── daily-YYYY-MM-DD.txt  # 每日追踪日志
-├── learnings/
-│   └── behavior-frequency.md  # 行为频率记录
-└── templates/
-    └── meal-plan.html        # 膳食方案图片模板
+└── learnings/
+    └── behavior-frequency.md  # 行为频率记录
 ```
 
 ### 存储策略（按优先级）
