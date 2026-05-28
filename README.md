@@ -14,8 +14,8 @@
 | 📊 **营养分析** | 每道菜精确到克的热量/蛋白质/脂肪/碳水计算，附膳食目标看板 |
 | 📦 **库存管理** | 记录冰箱食材，自动生成采购清单，追踪每日消耗 |
 | ✅ **执行追踪** | 记录每餐执行状态（已执行/待执行/已跳过），积累行为频率 |
-| 🖼️ **可视化输出** | 生成杂志风格长图（1080px 宽），包含人员档案、菜谱步骤、营养数据、健康提示 |
-| 🔄 **自进化机制** | 学习用户反馈，触发词优化，棘轮固化（同类问题第三次出现时有预防机制） |
+| 🖼️ **可视化输出** | 调用 orca-insta 生成杂志风格长图（1080px 宽） |
+| 🔄 **自进化机制** | 学习用户反馈，触发词优化，棘轮固化 |
 
 ---
 
@@ -24,10 +24,6 @@
 ```
 dietary-planner/
 ├── SKILL.md                              # 主技能文件（含完整说明）
-├── templates/
-│   └── meal-plan.html                    # 膳食方案图片模板（HTML）
-├── assets/
-│   └── capture.js                        # 截图引擎（基于 Playwright）
 ├── data/
 │   └── inventory.txt                     # 库存 + 人员档案（空模板）
 ├── tracking/
@@ -44,43 +40,56 @@ dietary-planner/
 
 ## 🚀 安装
 
-### 方式一：作为 OpenClaw Skill 使用
+### 依赖安装
 
-将整个目录放入 `~/.openclaw/skills/` 或对应的 workspace skills 目录：
+本技能需要 **orca-insta** 作为图片生成引擎。安装方式：
 
 ```bash
-cp -r dietary-planner ~/.openclaw/skills/
+# 克隆 orca-insta（如果尚未安装）
+git clone https://github.com/pericn/orca-insta.git ~/.openclaw/skills/orca-insta
+
+# 安装 Playwright 截图依赖
+cd ~/.openclaw/skills/orca-insta
+npm install
+npx playwright install chromium
 ```
 
-然后在 OpenClaw 配置中启用该 skill。
+### 使用方式一：作为 OpenClaw Skill 使用
 
-### 方式二：作为 Coze 智能体 Skill 使用
+将整个目录放入 workspace skills 目录：
+
+```bash
+cp -r dietary-planner ~/.openclaw/workspace-laura/skills/
+```
+
+### 使用方式二：作为 Coze 智能体 Skill 使用
 
 1. 将 `SKILL.md` 内容导入到 Coze 的 Skill 配置中
 2. 配置知识库：关联 `参考文件/` 下的三个参考文档
 3. 配置变量/知识库：`data/inventory.txt` 作为人员档案知识库
 4. 启用文件写入支持（或使用对话快照模式）
 
-### 方式三：独立使用 HTML 模板
+---
 
-如只需生成可视化卡片，可单独使用 `templates/meal-plan.html`：
+## 🔄 工作流程
 
-```bash
-# 安装 Playwright 截图依赖
-npx playwright install chromium
-
-# 截图示例
-node assets/capture.js \
-  templates/meal-plan.html \
-  ~/Downloads/meal-plan.png \
-  1080 2000 fullpage
+```
+用户请求制定食谱
+    ↓
+dietary-planner 生成 Markdown 方案
+    ↓
+调用 orca-insta（magzine-long 模式）
+    ↓
+生成 PNG 长图（1080px 宽）
+    ↓
+发送图片给用户（文字版 + 图片版）
 ```
 
 ---
 
 ## 👥 使用对象
 
-- **家庭用户**：为家里长辈（爸妈/爷爷奶妈）定制健康饮食
+- **家庭用户**：为家里长辈（爸妈/爷爷奶奶）定制健康饮食
 - **AI 开发者**：集成到 AI Agent / 聊天机器人中提供膳食规划能力
 - **健康管理师**：快速生成个性化食谱方案
 
@@ -97,13 +106,13 @@ node assets/capture.js \
 
 ---
 
-## 📋 标准化输出格式
+## 📋 输出内容
 
-生成的膳食方案图片包含以下五个板块：
+生成的方案包含以下五个核心板块：
 
 1. **标题区** — 日期、人员、健康主题标签
-2. **人员档案卡** — 称呼、禁忌、医嘱、软性偏好、饮食目标
-3. **膳食目标** — 热量/蛋白质/脂肪/碳水/钠/钙等核心营养指标
+2. **人员档案卡** — 禁忌（×）/ 医嘱 / 软性偏好 / 饮食目标
+3. **膳食目标** — 热量/蛋白质/脂肪/碳水/钠/钙/纤维/钾，关键指标高亮
 4. **菜谱详情** — 主料/辅料/调味/步骤/长者提示/替换方案/营养分析
 5. **健康提示** — 根据档案自动生成的专项健康建议（3-5条）
 
