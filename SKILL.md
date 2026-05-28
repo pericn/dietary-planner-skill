@@ -68,19 +68,17 @@ dietary-planner/
 ### 调用流程
 
 1. **生成 Markdown 方案**：按下方「输出格式」章节生成结构化 Markdown
-2. **注入 orca-insta**：将 Markdown 内容注入 orca-insta 的 `templates/magazine-long.html`（杂志长图模式，1080px 宽）
-3. **截图输出**：使用 `orca-insta/assets/capture.js` 生成 PNG 图片
+2. **注入 orca-insta**：将 Markdown 内容注入本地的 `orca-insta/templates/magazine-long.html`（杂志长图模式，1080px 宽）
+3. **截图输出**：使用 `orca-insta/capture.js` 生成 PNG 图片
 4. **发送图片**：通过消息渠道将图片发送给用户（文字版 + 图片版同时输出）
 
 ### 依赖安装
 
-若部署环境没有安装 orca-insta，执行以下命令：
-```bash
-# 克隆 orca-insta 到本地
-git clone https://github.com/pericn/orca-insta.git ~/.openclaw/skills/orca-insta
+**自动包含**：orca-insta 已作为 submodule 内置于本仓库中，无需单独安装。
 
-# 安装 Playwright 依赖
-cd ~/.openclaw/skills/orca-insta
+如需手动安装 Playwright 截图依赖：
+```bash
+cd orca-insta
 npm install
 npx playwright install chromium
 ```
@@ -231,8 +229,8 @@ npx playwright install chromium
 ### 调用命令示例
 
 ```bash
-# 假设 orca-insta 安装在 ~/.openclaw/skills/orca-insta
-node ~/.openclaw/skills/orca-insta/assets/capture.js \
+# 使用本地 submodule 中的 capture.js
+node orca-insta/capture.js \
   /tmp/meal-plan.html \
   ~/Downloads/dietary-plan-2026-05-28.png \
   1080 2000 fullpage

@@ -24,6 +24,11 @@
 ```
 dietary-planner/
 ├── SKILL.md                              # 主技能文件（含完整说明）
+├── orca-insta/                           # 图片生成 submodule
+│   ├── SKILL.md                         # orca-insta 视觉卡片生成
+│   ├── SPEC/                            # 设计规格文档
+│   ├── templates/magazine-long.html     # 杂志长图模板
+│   └── capture.js                       # Playwright 截图引擎
 ├── data/
 │   └── inventory.txt                     # 库存 + 人员档案（空模板）
 ├── tracking/
@@ -31,27 +36,31 @@ dietary-planner/
 ├── learnings/
 │   └── behavior-frequency.md             # 行为频率记录（空模板）
 └── 参考文件/
-    ├── 参考文件-中国居民膳食指南2022.md    # 中国营养学会官方指南
-    ├── 参考文件-卫健委成人肥胖食养指南2024.md # 国家卫健委减重指南
-    └── 参考文件-美国膳食指南DGA2025-2030.md # USDA最新版
+    ├── 参考文件-中国居民膳食指南2022.md
+    ├── 参考文件-卫健委成人肥胖食养指南2024.md
+    └── 参考文件-美国膳食指南DGA2025-2030.md
 ```
 
 ---
 
 ## 🚀 安装
 
-### 依赖安装
+### 安装依赖
 
-本技能需要 **orca-insta** 作为图片生成引擎。安装方式：
+本技能通过 **orca-insta** submodule 生成可视化图片。安装时自动包含：
 
 ```bash
-# 克隆 orca-insta（如果尚未安装）
-git clone https://github.com/pericn/orca-insta.git ~/.openclaw/skills/orca-insta
+# 克隆主仓库（含 submodule）
+git clone --recurse-submodules https://github.com/pericn/dietary-planner-skill.git
+
+# 进入目录
+cd dietary-planner-skill
+
+# 初始化 submodules（首次克隆后如需手动拉取）
+git submodule update --init --recursive
 
 # 安装 Playwright 截图依赖
-cd ~/.openclaw/skills/orca-insta
-npm install
-npx playwright install chromium
+cd orca-insta && npm install && npx playwright install chromium
 ```
 
 ### 使用方式一：作为 OpenClaw Skill 使用
