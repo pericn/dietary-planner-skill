@@ -68,9 +68,9 @@ dietary-planner/
 ### 调用流程
 
 1. **生成 Markdown 方案**：按下方「输出格式」章节生成结构化 Markdown
-2. **注入 orca-insta**：将 Markdown 内容注入 `templates/magazine-long.html`（杂志长图模式）
-3. **截图输出**：使用 `assets/capture.js` 生成 PNG 图片
-4. **发送图片**：通过消息渠道将图片发送给用户
+2. **注入 orca-insta**：将 Markdown 内容注入 orca-insta 的 `templates/magazine-long.html`（杂志长图模式，1080px 宽）
+3. **截图输出**：使用 `orca-insta/assets/capture.js` 生成 PNG 图片
+4. **发送图片**：通过消息渠道将图片发送给用户（文字版 + 图片版同时输出）
 
 ### 依赖安装
 
@@ -85,11 +85,9 @@ npm install
 npx playwright install chromium
 ```
 
-### 输出格式（Markdown → 图片）
+### 输出格式（Markdown → 图片注入）
 
 图片内容按以下顺序排布，包含五个核心板块：
-
-生成的膳食方案长图必须包含以下五个板块，按顺序排列：
 
 ---
 
